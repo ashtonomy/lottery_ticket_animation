@@ -8,4 +8,5 @@ This repo contains d3js code for an animation of an iterative pruning algorithm 
 - [ ] Implement animation for strategy 1 (This should be relatively trivial. Weights and colors should just be reset to initial values after each pruning step.).
 - [ ] Initialize network (Gaussian Glorot, for fidelity) at the beginning to emphasize initialization importance. 
 - [ ] Add pruning logic to prevent "floating" weights.
+- [ ] Implement a backward pass animation to update stroke weights/color intensity. 
 - [ ] Replicate architectures from the original paper (ambitious).
