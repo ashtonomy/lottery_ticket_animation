@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+<body>
+<div class="pruning_animation"></div>
+</body>
+
+<script src="https://d3js.org/d3.v5.js" ></script>
+<script src= "https://d3js.org/d3-color.v1.min.js"></script> 
+<script src= "https://d3js.org/d3-interpolate.v1.min.js"></script> 
+<script src= "https://d3js.org/d3-scale-chromatic.v1.min.js"></script> 
+
+<script type="module">
+
+	import {easeLinear} from "https://cdn.skypack.dev/d3-ease@3";
+	
+	
+</script>
+
+<script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+<script src="pruning.js"></script>
+
+<style>
+
+@import url(http://fonts.googleapis.com/css?family=Jost|Jost:b|Jost:i);
+@import url(http://fonts.googleapis.com/css?family=Rajdhani|Rajdhani:m|Rajdhani:sb|Rajdhani:b|Rajdhani:i);
+
+body {
+	background-color: #95a78d;
+}
+
+.plot {
+	background-color: #95a78d;
+	color: white;
+	width: 75%;
+    display: block;
+    margin: 0 auto;
+}
+
+.circle {
+	stroke: "white";
+	stroke-width:3px;
+}
+
+.link {
+	opacity: 0.7;
+}
+
+.axis .minor line {
+	color: white;
+	stroke: white;
+	stroke-width: 1px;
+	stroke-dasharray: 6,4;
+	font-family: "Jost";
+}
+
+.axis-label {
+	color: white;
+	padding: 2em;
+	font-size: 36px;
+	font-family: "Rajdhani";
+}
+
+.title {
+	color: white;
+	padding: 2em;
+	font-size: 45px;
+	font-family: "Rajdhani";
+	font-weight: normal;
+}
+
+.annotation text {
+      fill: whitesmoke;
+    }
+
+.annotation path {
+	stroke: whitesmoke;
+}
+
+
+
+
+</style>
+<script>
+
+
+
+</script>
+
