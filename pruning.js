@@ -425,7 +425,7 @@ for (let i = 0; i < trainingRuns*epochs+epochs; i++) {
 			cumDelay += 3*trainingRunSpeed;
 		}
 		else {
-			setTimeout(updateAlgoText, cumDelay, "2. Train network for j iterations.");
+			setTimeout(updateAlgoText, cumDelay, "2. Train network for j iterations");
 			setTimeout(updateStep, cumDelay);
 			setTimeout(activateTrainingRun, cumDelay);
 			cumDelay += trainingRunSpeed;
