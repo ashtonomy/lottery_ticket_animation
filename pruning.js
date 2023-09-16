@@ -14,10 +14,25 @@ var svg = d3.select(".pruning_animation")
 	.attr("transform", 
 		"translate(" + margin.left + "," + margin.top + ")"
 	);
+	
+
+// Model + Training configuration
 
 var topNodes = 5;
 var innerNodes = 7;
 var lastNodes = 5;
+
+var biasCount = innerNodes * 2 + lastNodes;
+var weightCount = innerNodes * (topNodes + innerNodes + lastNodes);
+var params = biasCount + weightCount;
+
+// Timing vars
+var pulseSpeed = 300;
+var startDelay = 0;
+var trainingRunSpeed = pulseSpeed*6-600;
+
+var epochs = 2;
+var trainingRuns = 20;
 
 var radius = 25;
 var row_one = [];
@@ -153,13 +168,88 @@ function getBetaRandomVariable() {
 
 /********************************************************************
  * 
+ * Annotations
+ * 
+ ********************************************************************/
+ 
+// Init text object
+var step = 0;
+var pruningIter = 0;
+
+svg.append("text")
+	.attr("id", "weight_text")
+	.attr("class", "text")
+	.attr("x", 0)
+	.attr("y", 0)
+	.text("Params: " + (weightCount + biasCount).toString());
+
+svg.append("text")
+	.attr("id", "pruning_iter_text")
+	.attr("class", "text")
+	.attr("x", 0)
+	.attr("y", 24)
+	.text("Pruning Iter: " + pruningIter.toString());
+
+svg.append("text")
+	.attr("id", "step_text")
+	.attr("class", "text")
+	.attr("x", 0)
+	.attr("y", 48)
+	.text("Step: " + step.toString());
+
+svg.append("text")
+	.attr("id", "algo_text")
+	.attr("class", "text")
+	.style("text-anchor", "middle")
+	// .attr("dominant-baseline", "central") 
+	.attr("x", 3 * width/8)
+	.attr("y", 0)
+	.text("0. Randomly initialize network.");
+
+function updateAlgoText(text) {
+	svg.select("#algo_text")
+		.text(text);
+}
+
+function updatePruningIter(){
+	pruningIter++;
+	svg.select("#pruning_iter_text")	
+		.text("Pruning Iter: " + pruningIter.toString())
+}
+
+function updateStep(){
+	step++;
+	svg.select("#step_text")	
+		.text("Step: " + step.toString())
+}
+
+function updateWeightCount(thresholdWeight){
+	
+	var currParams = params;
+	
+	weightCount = svg.selectAll("path")
+		.filter(function() {
+			return d3.select(this).attr("stroke-width") >= thresholdWeight;
+		})
+		.size();
+	
+	var newParams = weightCount + biasCount;
+	var paramDiff = currParams - newParams;
+	
+	svg.select("#weight_text")	
+		.transition()
+		// .delay(trainingRunSpeed)
+		.duration(pulseSpeed + trainingRunSpeed)
+		.textTween(
+			() => t => `Params: ${(currParams - (t*paramDiff)).toFixed()}`
+		);
+}
+
+/********************************************************************
+ * 
  * Training Animation
  * 
  ********************************************************************/
-
-
-// Duration of link size change (Half of total duration to increase and decrease)
-var pulseSpeed = 300;
 
 function activateTrainingRun() {
 	
@@ -231,6 +321,27 @@ function activateTrainingRun() {
 	}
 }
 
+/* 
+ * "In both cases, after the network 
+ * has been sufficiently pruned, its weights are
+ * reset back to the original initializations."
+ *  - Frankle & Carbin 2019
+ * 
+ */
+
+function finishTraining() {
+	
+	svg.selectAll("path")
+		.filter(function() {
+			return d3.select(this).attr("stroke-width") > 0;
+		})
+		.transition()
+		.ease(d3.easeLinear)
+		.duration(3*pulseSpeed/2)
+		.attr('stroke', d3.interpolateOranges(0))
+		.attr("stroke-width", 1);
+}
+
 /********************************************************************
  * 
  * Pruning Weights
@@ -283,53 +394,39 @@ function activateTrainingRun() {
 	}
 }
 
-/* 
- * "In both cases, after the network 
- * has been sufficiently pruned, its weights are
- * reset back to the original initializations."
- *  - Frankle & Carbin 2019
- * 
- */
-
-function finishTraining() {
-	
-	svg.selectAll("path")
-		.filter(function() {
-			return d3.select(this).attr("stroke-width") > 0;
-		})
-		.transition()
-		.ease(d3.easeLinear)
-		.duration(3*pulseSpeed/2)
-		.attr('stroke', d3.interpolateOranges(0))
-		.attr("stroke-width", 1);
-}
-
 /********************************************************************
  * 
  * Timing Control Logic
  * 
  ********************************************************************/
 
-// "Train" network 15 times
-var epochs = 2;
-var trainingRuns = 20;
-var trainingRunSpeed = pulseSpeed*6-600;
-var cumDelay = 0;
+// Init cumDelay to pulseSpeed*3 to add a small delay before starting
+var cumDelay = startDelay;
 for (let i = 0; i < trainingRuns*epochs+epochs; i++) {
 	if ( i === trainingRuns ) {
+		setTimeout(updateAlgoText, cumDelay, "3. Prune s% of parameters by smallest-magnitude");
 		setTimeout(activatePruneWeights, cumDelay, 2);
+		setTimeout(updateWeightCount, cumDelay+trainingRunSpeed, 2);
+		setTimeout(updatePruningIter, trainingRunSpeed+cumDelay+3*pulseSpeed);
 		cumDelay += 3*trainingRunSpeed;
 	}
 	else if (i === 2*trainingRuns+1) {
+		setTimeout(updateAlgoText, cumDelay, "3. Prune s% of parameters by smallest-magnitude");
 		setTimeout(activatePruneWeights, cumDelay, (trainingRuns/5));
+		setTimeout(updateWeightCount, cumDelay+pulseSpeed, (trainingRuns/5));
+		setTimeout(updatePruningIter, cumDelay+3*pulseSpeed);
 		cumDelay += 2*trainingRunSpeed;
 	}
 	else {
 		if ((i != 0) && (i % (trainingRuns-1) === 0)) {
+			setTimeout(updateAlgoText, cumDelay, "2. Train network for j iterations");
+			setTimeout(updateStep, cumDelay);
 			setTimeout(activateTrainingRun, cumDelay);
 			cumDelay += 3*trainingRunSpeed;
 		}
 		else {
+			setTimeout(updateAlgoText, cumDelay, "2. Train network for j iterations.");
+			setTimeout(updateStep, cumDelay);
 			setTimeout(activateTrainingRun, cumDelay);
 			cumDelay += trainingRunSpeed;
 		}
@@ -337,3 +434,4 @@ for (let i = 0; i < trainingRuns*epochs+epochs; i++) {
 }
 
 setTimeout(finishTraining, cumDelay + trainingRunSpeed*4);
+setTimeout(updateAlgoText, cumDelay + trainingRunSpeed*3, "4. Reset remaining parameters to their initial values");
